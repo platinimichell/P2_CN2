@@ -24,33 +24,25 @@ app = Flask(__name__)
 CORS(app)
 
 # ── Configurações ──────────────────────────────────────────────
-
-
-AZURE_CONNECTION_STRING = os.environ["AZURE_CONNECTION_STRING"]
-
+AZURE_CONNECTION_STRING = (
+    "BlobEndpoint=https://stodsm6p2.blob.core.windows.net/;"
+    "QueueEndpoint=https://stodsm6p2.queue.core.windows.net/;"
+    "FileEndpoint=https://stodsm6p2.file.core.windows.net/;"
+    "TableEndpoint=https://stodsm6p2.table.core.windows.net/;"
+    "SharedAccessSignature=sv=2026-02-06&ss=b&srt=sco&sp=rwdlaciytfx"
+    "&se=2026-06-08T20:41:40Z&st=2026-05-25T12:26:40Z&spr=https,http"
+    "&sig=4ZaFti31frOhQfvDnNOlFPaad%2FgAjEeDiiGS8AlxJfU%3D"
+)
 AZURE_ACCOUNT  = "stodsm6p2"
 CONTAINER_NAME = "aluno-michell"
 #SA_JSON_PATH   = os.path.join(os.path.dirname(__file__), "..", "service_account.json")
-#SA_JSON_PATH = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
+SA_JSON_PATH = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+SCOPES         = ["https://www.googleapis.com/auth/drive.readonly"]
 
 
 # ── Helpers ────────────────────────────────────────────────────
-# def get_drive_service():
-#     creds = service_account.Credentials.from_service_account_file(SA_JSON_PATH, scopes=SCOPES)
-#     return build("drive", "v3", credentials=creds)
-
 def get_drive_service():
-    creds_info = json.loads(os.environ["GOOGLE_CREDENTIALS"])
-
-    # Corrige quebras de linha da chave privada
-    creds_info["private_key"] = creds_info["private_key"].replace("\\n", "\n")
-
-    creds = service_account.Credentials.from_service_account_info(
-        creds_info,
-        scopes=SCOPES
-    )
-
+    creds = service_account.Credentials.from_service_account_file(SA_JSON_PATH, scopes=SCOPES)
     return build("drive", "v3", credentials=creds)
 
 def get_blob_client():
