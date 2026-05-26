@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Drive → Azure Migration · Aluno Michell</title>
+<title>Drive Azure Migration · Michell</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -411,7 +411,6 @@
   </div>
   <nav>
     <button class="nav-btn active" onclick="switchView('dashboard')">Dashboard</button>
-    <button class="nav-btn" onclick="switchView('about')">Sobre</button>
   </nav>
   <div class="header-right">
     <div class="api-status">
@@ -427,8 +426,9 @@
     <div class="sidebar-section">
       <div class="sidebar-label">Google Drive</div>
       <div class="sidebar-input-row">
-        <label>Folder ID</label>
-        <input type="text" id="folder-id" value="" placeholder="ID da pasta">
+        <label>Drive</label>
+        <input type="text" id="container-name" value="Michell Platini" readonly
+               style="opacity:.6;cursor:not-allowed;">
       </div>
       <button class="btn btn-ghost btn-full" onclick="loadDrive()">
         🔍 Listar arquivos Drive
@@ -687,7 +687,8 @@
 
   // ── DRIVE LIST ────────────────────────────────────────────
   async function loadDrive() {
-    const folderId = document.getElementById('folder-id').value.trim() || 'root';
+    const folderId = "16h5mLwXvW5FTwys6lwP4JUTlxT_J1K8c"
+    //const folderId = document.getElementById('folder-id').value.trim() || 'root';
     const area = document.getElementById('file-area-drive');
     area.innerHTML = loadingHtml('Carregando arquivos do Drive...');
     log('🔍 Listando arquivos no Google Drive...', 'i');

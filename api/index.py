@@ -1,14 +1,12 @@
-"""
-Backend Flask — File Migration API
-Google Drive → Azure Blob Storage
-Rotas para uso local e deploy no Vercel
-"""
 
+from dotenv import load_dotenv
 import io
 import os
 import json
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+
+load_dotenv()
 
 try:
     from google.oauth2 import service_account
@@ -37,7 +35,8 @@ AZURE_CONNECTION_STRING = (
 )
 AZURE_ACCOUNT  = "stodsm6p2"
 CONTAINER_NAME = "aluno-michell"
-SA_JSON_PATH   = os.path.join(os.path.dirname(__file__), "..", "service_account.json")
+#SA_JSON_PATH   = os.path.join(os.path.dirname(__file__), "..", "service_account.json")
+SA_JSON_PATH = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 SCOPES         = ["https://www.googleapis.com/auth/drive.readonly"]
 
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Inicia o servidor local da aplicação de migração.
 Acesse: http://localhost:5000
