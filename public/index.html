@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drive → Azure Migration · Aluno Michell</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #0b0c10;
+    --surface: #13151c;
+    --panel:   #1a1d28;
+    --border:  #2a2d3e;
+    --border2: #363a52;
+    --text:    #e2e4f0;
+    --muted:   #6b7099;
+    --dim:     #3d4160;
+    --blue:    #4f6ef7;
+    --blue2:   #3d5ce5;
+    --teal:    #2dd4bf;
+    --green:   #34d399;
+    --amber:   #fbbf24;
+    --red:     #f87171;
+    --purple:  #a78bfa;
+    --font:    'Syne', sans-serif;
+    --mono:    'IBM Plex Mono', monospace;
+    --r:       10px;
+    --r2:      6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 15px; font-weight: 700; color: var(--text);
+    letter-spacing: -0.3px;
+  }
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--blue);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .logo-sep { color: var(--dim); font-weight: 400; }
+  nav { display: flex; gap: 4px; margin-left: 24px; }
+  .nav-btn {
+    padding: 6px 14px;
+    border-radius: var(--r2);
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .nav-btn:hover { color: var(--text); background: var(--panel); }
+  .nav-btn.active { color: var(--text); background: var(--panel); }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .api-status {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-family: var(--mono); color: var(--muted);
+  }
+  .api-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--dim);
+    transition: background 0.3s;
+  }
+  .api-dot.ok    { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .api-dot.error { background: var(--red); }
+
+  /* ── MAIN LAYOUT ── */
+  main { flex: 1; display: flex; overflow: hidden; }
+  .sidebar {
+    width: 280px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  .sidebar-section { padding: 0 16px 20px; }
+  .sidebar-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 1px;
+    color: var(--muted); text-transform: uppercase;
+    padding: 0 8px; margin-bottom: 8px;
+  }
+  .sidebar-input-row { margin-bottom: 8px; }
+  .sidebar-input-row label {
+    display: block; font-size: 11px; color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .sidebar-input-row input {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--r2);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 7px 10px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .sidebar-input-row input:focus { border-color: var(--blue); }
+  .sidebar-divider {
+    height: 1px; background: var(--border);
+    margin: 0 0 20px;
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: var(--r2);
+    font-family: var(--font); font-size: 13px; font-weight: 500;
+    cursor: pointer; border: none; transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-full { width: 100%; justify-content: center; margin-bottom: 6px; }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-primary:hover { background: var(--blue2); }
+  .btn-primary:disabled { background: var(--dim); color: var(--muted); cursor: not-allowed; }
+  .btn-ghost  { background: var(--panel); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover  { border-color: var(--border2); }
+  .btn-teal   { background: rgba(45,212,191,.15); color: var(--teal); border: 1px solid rgba(45,212,191,.3); }
+  .btn-teal:hover   { background: rgba(45,212,191,.22); }
+  .btn-danger { background: rgba(248,113,113,.12); color: var(--red); border: 1px solid rgba(248,113,113,.25); }
+  .btn-danger:hover { background: rgba(248,113,113,.2); }
+
+  /* ── CONTENT ── */
+  .content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* tabs */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    background: var(--surface);
+    gap: 0;
+  }
+  .tab {
+    padding: 14px 18px;
+    font-size: 13px; font-weight: 500;
+    color: var(--muted); cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--text); border-bottom-color: var(--blue); }
+  .tab-count {
+    background: var(--panel);
+    border-radius: 20px;
+    font-size: 11px; font-family: var(--mono);
+    padding: 1px 7px;
+    color: var(--muted);
+    min-width: 22px; text-align: center;
+  }
+  .tab.active .tab-count { background: rgba(79,110,247,.2); color: var(--blue); }
+
+  /* tab panels */
+  .tab-panel { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+  .tab-panel.active { display: flex; }
+
+  /* toolbar */
+  .toolbar {
+    padding: 14px 24px;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .search-wrap {
+    flex: 1; position: relative; max-width: 320px;
+  }
+  .search-wrap svg {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    width: 14px; height: 14px; color: var(--muted); pointer-events: none;
+  }
+  .search-wrap input {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--r2);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    padding: 7px 10px 7px 32px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-wrap input:focus { border-color: var(--blue); }
+  .search-wrap input::placeholder { color: var(--muted); }
+  .toolbar-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .view-toggle { display: flex; background: var(--panel); border-radius: var(--r2); border: 1px solid var(--border); }
+  .view-btn {
+    padding: 6px 10px; border: none; background: transparent;
+    color: var(--muted); cursor: pointer; border-radius: var(--r2);
+    font-size: 13px; transition: all 0.15s;
+  }
+  .view-btn.active { background: var(--blue); color: #fff; }
+
+  /* file lists */
+  .file-area { flex: 1; overflow-y: auto; padding: 16px 24px; }
+
+  /* grid view */
+  .file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
+  .file-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 16px 14px 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .file-card:hover { border-color: var(--border2); background: #1e2130; }
+  .file-card-icon {
+    width: 40px; height: 40px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .file-card-name {
+    font-size: 12px; font-weight: 500; color: var(--text);
+    overflow: hidden; text-overflow: ellipsis;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    line-height: 1.4;
+  }
+  .file-card-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: auto;
+  }
+  .file-card-size { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+  .file-card-badge {
+    font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 600;
+  }
+
+  /* list view */
+  .file-list { display: flex; flex-direction: column; gap: 1px; }
+  .file-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px;
+    background: var(--panel);
+    border-radius: var(--r2);
+    transition: background 0.1s;
+    cursor: pointer;
+  }
+  .file-row:hover { background: #1e2130; }
+  .file-row-icon { font-size: 18px; flex-shrink: 0; width: 28px; text-align: center; }
+  .file-row-name { flex: 1; font-size: 13px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-row-size  { font-size: 12px; color: var(--muted); font-family: var(--mono); white-space: nowrap; min-width: 70px; text-align: right; }
+  .file-row-date  { font-size: 11px; color: var(--muted); white-space: nowrap; min-width: 100px; text-align: right; }
+  .file-row-actions { display: flex; gap: 6px; opacity: 0; transition: opacity 0.15s; }
+  .file-row:hover .file-row-actions { opacity: 1; }
+  .icon-btn {
+    width: 28px; height: 28px; border-radius: var(--r2);
+    border: 1px solid var(--border); background: transparent;
+    color: var(--muted); cursor: pointer; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .icon-btn:hover { border-color: var(--border2); color: var(--text); background: var(--surface); }
+  .icon-btn.red:hover { border-color: var(--red); color: var(--red); }
+
+  /* status badge */
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+  .badge-success { background: rgba(52,211,153,.15); color: var(--green); }
+  .badge-pending { background: rgba(251,191,36,.12); color: var(--amber); }
+  .badge-error   { background: rgba(248,113,113,.12); color: var(--red); }
+
+  /* stats bar */
+  .stats-bar {
+    padding: 10px 24px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex; gap: 24px; align-items: center;
+  }
+  .stat-item { display: flex; gap: 6px; align-items: baseline; }
+  .stat-val { font-size: 14px; font-weight: 600; font-family: var(--mono); }
+  .stat-lbl { font-size: 11px; color: var(--muted); }
+
+  /* ── CONSOLE TAB ── */
+  .console-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .console-toolbar {
+    padding: 10px 24px;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .console-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); }
+  .console-dot.running { background: var(--green); box-shadow: 0 0 6px var(--green); animation: blink 1.2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .console-output {
+    flex: 1; overflow-y: auto;
+    padding: 16px 24px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    background: #080a0f;
+  }
+  .log { display: flex; gap: 12px; margin-bottom: 2px; }
+  .log-t { color: var(--dim); white-space: nowrap; }
+  .log-i { color: #60a5fa; }
+  .log-s { color: var(--green); }
+  .log-e { color: var(--red); }
+  .log-w { color: var(--amber); }
+  .log-x { color: var(--purple); }
+  .log-d { color: var(--border2); }
+
+  /* ── PROGRESS ── */
+  .progress-wrap { padding: 10px 24px; border-top: 1px solid var(--border); display: none; }
+  .progress-wrap.visible { display: block; }
+  .progress-info { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-bottom: 5px; font-family: var(--mono); }
+  .progress-track { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill  { height: 100%; background: var(--blue); border-radius: 2px; transition: width 0.3s; width: 0%; }
+
+  /* ── EMPTY / LOADING ── */
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; flex: 1; gap: 12px;
+    color: var(--muted); padding: 40px;
+    text-align: center;
+  }
+  .empty-icon { font-size: 40px; opacity: 0.3; }
+  .empty-text { font-size: 14px; }
+  .empty-sub  { font-size: 12px; color: var(--dim); }
+
+  /* ── MODAL ── */
+  .modal-bg {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.7); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--border2);
+    border-radius: var(--r);
+    padding: 24px;
+    width: 480px; max-width: 95vw;
+  }
+  .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .modal p  { font-size: 13px; color: var(--muted); margin-bottom: 18px; line-height: 1.5; }
+  .modal-url {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r2); padding: 10px 12px;
+    font-family: var(--mono); font-size: 11px; color: var(--teal);
+    word-break: break-all; margin-bottom: 16px;
+  }
+  .modal-row { display: flex; gap: 8px; justify-content: flex-end; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* toast */
+  #toast {
+    position: fixed; bottom: 20px; right: 20px;
+    background: var(--panel); border: 1px solid var(--border2);
+    border-radius: var(--r); padding: 12px 16px;
+    font-size: 13px; display: flex; gap: 8px; align-items: center;
+    transform: translateY(80px); opacity: 0;
+    transition: all 0.25s; z-index: 300;
+    max-width: 320px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">☁</div>
+    <span>Migration<span class="logo-sep"> / </span>Michell</span>
+  </div>
+  <nav>
+    <button class="nav-btn active" onclick="switchView('dashboard')">Dashboard</button>
+    <button class="nav-btn" onclick="switchView('about')">Sobre</button>
+  </nav>
+  <div class="header-right">
+    <div class="api-status">
+      <div class="api-dot" id="api-dot"></div>
+      <span id="api-label">verificando...</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Google Drive</div>
+      <div class="sidebar-input-row">
+        <label>Folder ID</label>
+        <input type="text" id="folder-id" value="" placeholder="ID da pasta">
+      </div>
+      <button class="btn btn-ghost btn-full" onclick="loadDrive()">
+        🔍 Listar arquivos Drive
+      </button>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Azure Blob Storage</div>
+      <div class="sidebar-input-row">
+        <label>Contêiner</label>
+        <input type="text" id="container-name" value="aluno-michell" readonly
+               style="opacity:.6;cursor:not-allowed;">
+      </div>
+      <button class="btn btn-ghost btn-full" onclick="loadBlob()">
+        🔍 Listar blobs Azure
+      </button>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Migração</div>
+      <button class="btn btn-primary btn-full" id="btn-migrate-all" onclick="migrateAll()">
+        ⬆ Migrar todos os arquivos
+      </button>
+      <button class="btn btn-danger btn-full" onclick="clearConsole()">
+        🗑 Limpar console
+      </button>
+    </div>
+
+    <div style="margin-top:auto; padding: 16px; border-top: 1px solid var(--border);">
+      <div style="font-size:11px; color:var(--dim); line-height:1.6; font-family:var(--mono);">
+        Account: stodsm6p2<br>
+        Container: aluno-michell<br>
+        Access: public 🌐
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('drive')">
+        📁 Google Drive
+        <span class="tab-count" id="drive-count">0</span>
+      </div>
+      <div class="tab" onclick="switchTab('blob')">
+        ☁ Azure Blob
+        <span class="tab-count" id="blob-count">0</span>
+      </div>
+      <div class="tab" onclick="switchTab('console')">
+        💻 Console
+        <span class="tab-count" id="console-count">0</span>
+      </div>
+    </div>
+
+    <!-- TAB: DRIVE -->
+    <div class="tab-panel active" id="panel-drive">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" placeholder="Buscar arquivo..." oninput="filterFiles('drive', this.value)" id="search-drive">
+        </div>
+        <div class="toolbar-right">
+          <div class="view-toggle">
+            <button class="view-btn" onclick="setView('drive','grid',this)" title="Grid">⊞</button>
+            <button class="view-btn active" onclick="setView('drive','list',this)" title="Lista">☰</button>
+          </div>
+          <button class="btn btn-ghost" onclick="loadDrive()">↺ Atualizar</button>
+        </div>
+      </div>
+      <div class="file-area" id="file-area-drive">
+        <div class="empty-state">
+          <div class="empty-icon">📁</div>
+          <div class="empty-text">Nenhum arquivo carregado</div>
+          <div class="empty-sub">Configure o Folder ID e clique em "Listar arquivos Drive"</div>
+        </div>
+      </div>
+      <div class="stats-bar" id="stats-drive" style="display:none;">
+        <div class="stat-item">
+          <span class="stat-val" id="drive-total" style="color:var(--blue)">0</span>
+          <span class="stat-lbl">arquivos</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-val" id="drive-size" style="color:var(--muted)">—</span>
+          <span class="stat-lbl">total</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: BLOB -->
+    <div class="tab-panel" id="panel-blob">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" placeholder="Buscar blob..." oninput="filterFiles('blob', this.value)" id="search-blob">
+        </div>
+        <div class="toolbar-right">
+          <div class="view-toggle">
+            <button class="view-btn" onclick="setView('blob','grid',this)" title="Grid">⊞</button>
+            <button class="view-btn active" onclick="setView('blob','list',this)" title="Lista">☰</button>
+          </div>
+          <button class="btn btn-ghost" onclick="loadBlob()">↺ Atualizar</button>
+        </div>
+      </div>
+      <div class="file-area" id="file-area-blob">
+        <div class="empty-state">
+          <div class="empty-icon">☁</div>
+          <div class="empty-text">Nenhum blob carregado</div>
+          <div class="empty-sub">Clique em "Listar blobs Azure" para visualizar</div>
+        </div>
+      </div>
+      <div class="stats-bar" id="stats-blob" style="display:none;">
+        <div class="stat-item">
+          <span class="stat-val" id="blob-total" style="color:var(--teal)">0</span>
+          <span class="stat-lbl">blobs</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-val" id="blob-size-total" style="color:var(--muted)">—</span>
+          <span class="stat-lbl">total</span>
+        </div>
+        <div style="margin-left:auto;">
+          <a id="blob-public-url"
+             href="https://stodsm6p2.blob.core.windows.net/aluno-michell/"
+             target="_blank"
+             style="font-size:11px; color:var(--teal); font-family:var(--mono); text-decoration:none;">
+            🌐 URL pública do contêiner ↗
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: CONSOLE -->
+    <div class="tab-panel" id="panel-console">
+      <div class="console-wrap">
+        <div class="console-toolbar">
+          <div class="console-dot" id="console-dot"></div>
+          <span style="font-size:12px; color:var(--muted); font-family:var(--mono);">Transfer log</span>
+          <div style="margin-left:auto; display:flex; gap:8px;">
+            <button class="btn btn-ghost" style="padding:5px 12px; font-size:12px;" onclick="clearConsole()">Limpar</button>
+            <button class="btn btn-ghost" style="padding:5px 12px; font-size:12px;" onclick="exportLog()">⬇ Exportar</button>
+          </div>
+        </div>
+        <div class="console-output" id="console-out">
+          <div class="log"><span class="log-t">00:00:00</span><span class="log-x">▶ Sistema iniciado. Configure as credenciais e inicie a migração.</span></div>
+          <div class="log"><span class="log-t">00:00:00</span><span class="log-i">ℹ Azure Storage: stodsm6p2 | Container: aluno-michell | Acesso: público</span></div>
+        </div>
+        <div class="progress-wrap" id="progress-wrap">
+          <div class="progress-info">
+            <span id="prog-label">Migrando...</span>
+            <span id="prog-pct">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="prog-fill"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL: File detail -->
+<div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
+  <div class="modal">
+    <h3 id="modal-title">Arquivo</h3>
+    <p id="modal-sub">Detalhes do arquivo no Azure Blob Storage.</p>
+    <div class="modal-url" id="modal-url"></div>
+    <div class="modal-row">
+      <button class="btn btn-ghost" onclick="closeModal()">Fechar</button>
+      <button class="btn btn-teal" id="modal-open-btn" onclick="openBlobUrl()">🌐 Abrir URL</button>
+      <button class="btn btn-primary" id="modal-copy-btn" onclick="copyBlobUrl()">📋 Copiar URL</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+  // ── CONFIG ────────────────────────────────────────────────
+  const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000'
+    : '';  // no Vercel, mesma origin
+
+  let driveFiles = [];
+  let blobFiles  = [];
+  let driveView  = 'list';
+  let blobView   = 'list';
+  let logCount   = 0;
+  let currentBlobUrl = '';
+
+  // ── INIT ─────────────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    checkHealth();
+    setInterval(checkHealth, 30000);
+  });
+
+  async function checkHealth() {
+    try {
+      const r = await fetch(`${API}/api/health`);
+      const d = await r.json();
+      if (d.status === 'ok') {
+        document.getElementById('api-dot').className = 'api-dot ok';
+        document.getElementById('api-label').textContent = 'API conectada';
+      }
+    } catch {
+      document.getElementById('api-dot').className = 'api-dot error';
+      document.getElementById('api-label').textContent = 'API offline';
+    }
+  }
+
+  // ── TABS / NAV ────────────────────────────────────────────
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach((t,i) => {
+      t.classList.toggle('active', ['drive','blob','console'][i] === name);
+    });
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-'+name).classList.add('active');
+  }
+
+  function switchView(v) {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+
+  // ── FILE ICONS ────────────────────────────────────────────
+  const ICONS = {
+    pdf:'📄', xlsx:'📊', xls:'📊', csv:'📊', docx:'📝', doc:'📝',
+    pptx:'📊', ppt:'📊', png:'🖼', jpg:'🖼', jpeg:'🖼', gif:'🖼',
+    mp4:'🎬', mp3:'🎵', zip:'🗜', rar:'🗜', txt:'📃', json:'📋',
+    js:'⚡', py:'🐍', sql:'🗄', html:'🌐', ts:'⚡'
+  };
+  const COLORS = {
+    pdf:'#f87171', xlsx:'#34d399', csv:'#34d399', docx:'#60a5fa',
+    png:'#a78bfa', jpg:'#a78bfa', jpeg:'#a78bfa', mp4:'#fb923c',
+    mp3:'#fb923c', zip:'#fbbf24', py:'#60a5fa', js:'#fbbf24',
+    sql:'#2dd4bf', json:'#c084fc', html:'#f97316'
+  };
+  function icon(name) {
+    const ext = name.split('.').pop().toLowerCase();
+    return ICONS[ext] || '📁';
+  }
+  function iconColor(name) {
+    const ext = name.split('.').pop().toLowerCase();
+    return COLORS[ext] || '#6b7099';
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    try { return new Date(iso).toLocaleDateString('pt-BR', {day:'2-digit',month:'short',year:'numeric'}); }
+    catch { return '—'; }
+  }
+
+  // ── DRIVE LIST ────────────────────────────────────────────
+  async function loadDrive() {
+    const folderId = document.getElementById('folder-id').value.trim() || 'root';
+    const area = document.getElementById('file-area-drive');
+    area.innerHTML = loadingHtml('Carregando arquivos do Drive...');
+    log('🔍 Listando arquivos no Google Drive...', 'i');
+    try {
+      const r = await fetch(`${API}/api/drive/files?folder_id=${encodeURIComponent(folderId)}`);
+      const d = await r.json();
+      if (!d.success) throw new Error(d.error);
+      driveFiles = d.files;
+      renderDrive();
+      document.getElementById('drive-count').textContent = driveFiles.length;
+      document.getElementById('drive-total').textContent = driveFiles.length;
+      document.getElementById('stats-drive').style.display = 'flex';
+      const totalBytes = driveFiles.reduce((s,f) => s + (f.size_raw||0), 0);
+      document.getElementById('drive-size').textContent = fmtBytes(totalBytes);
+      log(`✅ ${driveFiles.length} arquivo(s) encontrado(s) na pasta "${folderId}".`, 's');
+    } catch(e) {
+      area.innerHTML = errorHtml(e.message);
+      log(`✖ Erro ao listar Drive: ${e.message}`, 'e');
+    }
+  }
+
+  function renderDrive(files = driveFiles) {
+    const area = document.getElementById('file-area-drive');
+    if (!files.length) { area.innerHTML = emptyHtml('Nenhum arquivo encontrado.'); return; }
+    if (driveView === 'grid') {
+      area.innerHTML = `<div class="file-grid">${files.map(f => `
+        <div class="file-card" onclick="migrateSingle('${f.id}','${escQ(f.name)}')">
+          <div class="file-card-icon" style="background:${iconColor(f.name)}22;">${icon(f.name)}</div>
+          <div class="file-card-name">${esc(f.name)}</div>
+          <div class="file-card-meta">
+            <span class="file-card-size">${f.size}</span>
+            <span class="badge badge-pending" style="font-size:9px;">Drive</span>
+          </div>
+        </div>`).join('')}</div>`;
+    } else {
+      area.innerHTML = `<div class="file-list">${files.map(f => `
+        <div class="file-row">
+          <div class="file-row-icon">${icon(f.name)}</div>
+          <div class="file-row-name" title="${esc(f.name)}">${esc(f.name)}</div>
+          <div class="file-row-date">${fmtDate(f.modifiedTime)}</div>
+          <div class="file-row-size">${f.size}</div>
+          <div class="file-row-actions">
+            <button class="icon-btn" title="Migrar este arquivo"
+              onclick="event.stopPropagation();migrateSingle('${f.id}','${escQ(f.name)}')">⬆</button>
+          </div>
+        </div>`).join('')}</div>`;
+    }
+  }
+
+  // ── BLOB LIST ─────────────────────────────────────────────
+  async function loadBlob() {
+    const area = document.getElementById('file-area-blob');
+    area.innerHTML = loadingHtml('Carregando blobs do Azure...');
+    log('🔍 Listando blobs no Azure Blob Storage...', 'i');
+    try {
+      const r = await fetch(`${API}/api/blob/files`);
+      const d = await r.json();
+      if (!d.success) throw new Error(d.error);
+      blobFiles = d.files;
+      renderBlob();
+      document.getElementById('blob-count').textContent = blobFiles.length;
+      document.getElementById('blob-total').textContent = blobFiles.length;
+      document.getElementById('stats-blob').style.display = 'flex';
+      const totalBytes = blobFiles.reduce((s,f) => s + (f.size_raw||0), 0);
+      document.getElementById('blob-size-total').textContent = fmtBytes(totalBytes);
+      log(`✅ ${blobFiles.length} blob(s) no contêiner "aluno-michell".`, 's');
+    } catch(e) {
+      area.innerHTML = errorHtml(e.message);
+      log(`✖ Erro ao listar Azure: ${e.message}`, 'e');
+    }
+  }
+
+  function renderBlob(files = blobFiles) {
+    const area = document.getElementById('file-area-blob');
+    if (!files.length) { area.innerHTML = emptyHtml('Contêiner vazio. Faça a migração primeiro.'); return; }
+    if (blobView === 'grid') {
+      area.innerHTML = `<div class="file-grid">${files.map(f => `
+        <div class="file-card" onclick="openModal('${escQ(f.name)}','${escQ(f.url)}','${f.size}')">
+          <div class="file-card-icon" style="background:${iconColor(f.name)}22;">${icon(f.name)}</div>
+          <div class="file-card-name">${esc(f.name)}</div>
+          <div class="file-card-meta">
+            <span class="file-card-size">${f.size}</span>
+            <span class="badge badge-success" style="font-size:9px;">Azure</span>
+          </div>
+        </div>`).join('')}</div>`;
+    } else {
+      area.innerHTML = `<div class="file-list">${files.map(f => `
+        <div class="file-row" onclick="openModal('${escQ(f.name)}','${escQ(f.url)}','${f.size}')">
+          <div class="file-row-icon">${icon(f.name)}</div>
+          <div class="file-row-name" title="${esc(f.name)}">${esc(f.name)}</div>
+          <div class="file-row-date">${fmtDate(f.lastModified)}</div>
+          <div class="file-row-size">${f.size}</div>
+          <div class="file-row-actions">
+            <button class="icon-btn" title="Abrir URL pública"
+              onclick="event.stopPropagation();window.open('${escQ(f.url)}','_blank')">🌐</button>
+            <button class="icon-btn" title="Copiar URL"
+              onclick="event.stopPropagation();copyText('${escQ(f.url)}')">📋</button>
+            <button class="icon-btn red" title="Deletar blob"
+              onclick="event.stopPropagation();deleteBlob('${escQ(f.name)}')">🗑</button>
+          </div>
+        </div>`).join('')}</div>`;
+    }
+  }
+
+  // ── MIGRATION ─────────────────────────────────────────────
+  async function migrateAll() {
+    if (!driveFiles.length) { showToast('⚠ Liste os arquivos do Drive primeiro.'); return; }
+    const btn = document.getElementById('btn-migrate-all');
+    btn.disabled = true;
+    switchTab('console');
+    document.getElementById('console-dot').className = 'console-dot running';
+    showProgress(true);
+    log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'd');
+    log(`🚀 Iniciando migração — ${driveFiles.length} arquivo(s)`, 'x');
+
+    let ok = 0; let err = 0;
+    for (let i = 0; i < driveFiles.length; i++) {
+      const f = driveFiles[i];
+      const pct = Math.round((i / driveFiles.length) * 100);
+      setProgress(pct, `${i+1}/${driveFiles.length} — ${f.name}`);
+      log(`⬆ [${i+1}/${driveFiles.length}] ${f.name} (${f.size})...`, 'i');
+      try {
+        const r = await fetch(`${API}/api/migrate`, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({file_id: f.id, file_name: f.name})
+        });
+        const d = await r.json();
+        if (d.success) {
+          ok++;
+          log(`   ✅ SUCESSO → ${d.url}`, 's');
+        } else {
+          err++;
+          log(`   ✖ ERRO — ${d.error}`, 'e');
+        }
+      } catch(e) {
+        err++;
+        log(`   ✖ ERRO — ${e.message}`, 'e');
+      }
+    }
+
+    setProgress(100, `Concluído: ${ok} migrados, ${err} erros`);
+    log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'd');
+    log(`📊 Resultado: ${ok} sucesso(s) | ${err} erro(s)`, ok === driveFiles.length ? 's' : 'w');
+    log(`🌐 URL pública: https://stodsm6p2.blob.core.windows.net/aluno-michell/`, 's');
+    btn.disabled = false;
+    document.getElementById('console-dot').className = 'console-dot';
+    showToast(ok > 0 ? `✅ ${ok} arquivo(s) migrado(s) com sucesso!` : '⚠ Nenhum arquivo migrado.');
+    await loadBlob();
+  }
+
+  async function migrateSingle(fileId, fileName) {
+    log(`⬆ Migrando: ${fileName}...`, 'i');
+    switchTab('console');
+    try {
+      const r = await fetch(`${API}/api/migrate`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({file_id: fileId, file_name: fileName})
+      });
+      const d = await r.json();
+      if (d.success) {
+        log(`✅ SUCESSO — ${fileName} → ${d.url}`, 's');
+        showToast(`✅ ${fileName} migrado!`);
+        await loadBlob();
+      } else {
+        log(`✖ ERRO — ${fileName}: ${d.error}`, 'e');
+        showToast(`✖ Erro: ${d.error}`);
+      }
+    } catch(e) {
+      log(`✖ ERRO — ${e.message}`, 'e');
+    }
+  }
+
+  async function deleteBlob(name) {
+    if (!confirm(`Deletar "${name}" do Azure?`)) return;
+    try {
+      const r = await fetch(`${API}/api/blob/delete/${encodeURIComponent(name)}`, {method:'DELETE'});
+      const d = await r.json();
+      if (d.success) { log(`🗑 Deletado: ${name}`, 'w'); showToast(`🗑 ${name} deletado.`); await loadBlob(); }
+      else throw new Error(d.error);
+    } catch(e) { log(`✖ Erro ao deletar: ${e.message}`, 'e'); }
+  }
+
+  // ── MODAL ─────────────────────────────────────────────────
+  function openModal(name, url, size) {
+    currentBlobUrl = url;
+    document.getElementById('modal-title').textContent = name;
+    document.getElementById('modal-sub').textContent = `Arquivo disponível publicamente no Azure Blob Storage. Tamanho: ${size}`;
+    document.getElementById('modal-url').textContent = url;
+    document.getElementById('modal-bg').classList.add('open');
+  }
+  function closeModal(e) {
+    if (!e || e.target === document.getElementById('modal-bg'))
+      document.getElementById('modal-bg').classList.remove('open');
+  }
+  function openBlobUrl()  { window.open(currentBlobUrl, '_blank'); }
+  function copyBlobUrl()  { copyText(currentBlobUrl); closeModal(); }
+
+  // ── HELPERS ───────────────────────────────────────────────
+  function setView(panel, view, btn) {
+    if (panel === 'drive') { driveView = view; renderDrive(); }
+    else { blobView = view; renderBlob(); }
+    btn.closest('.view-toggle').querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function filterFiles(panel, q) {
+    const term = q.toLowerCase();
+    if (panel === 'drive') renderDrive(driveFiles.filter(f => f.name.toLowerCase().includes(term)));
+    else renderBlob(blobFiles.filter(f => f.name.toLowerCase().includes(term)));
+  }
+
+  function log(msg, type='i') {
+    logCount++;
+    const out = document.getElementById('console-out');
+    const t = new Date().toLocaleTimeString('pt-BR');
+    const cls = {i:'log-i',s:'log-s',e:'log-e',w:'log-w',x:'log-x',d:'log-d'}[type]||'log-i';
+    const el = document.createElement('div');
+    el.className = 'log';
+    el.innerHTML = `<span class="log-t">${t}</span><span class="${cls}">${esc(msg)}</span>`;
+    out.appendChild(el);
+    out.scrollTop = out.scrollHeight;
+    document.getElementById('console-count').textContent = logCount;
+  }
+
+  function clearConsole() {
+    document.getElementById('console-out').innerHTML = '';
+    logCount = 0;
+    document.getElementById('console-count').textContent = 0;
+    log('Console limpo.', 'x');
+  }
+
+  function exportLog() {
+    const lines = Array.from(document.querySelectorAll('.log'))
+      .map(l => l.textContent).join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(lines);
+    a.download = 'migration_log.txt';
+    a.click();
+  }
+
+  function showProgress(v) {
+    document.getElementById('progress-wrap').classList.toggle('visible', v);
+  }
+  function setProgress(pct, label) {
+    document.getElementById('prog-fill').style.width = pct + '%';
+    document.getElementById('prog-pct').textContent = pct + '%';
+    document.getElementById('prog-label').textContent = label;
+  }
+
+  function copyText(t) {
+    navigator.clipboard.writeText(t).then(() => showToast('📋 Copiado!'));
+  }
+
+  function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  function fmtBytes(b) {
+    if (!b) return '0 B';
+    if (b < 1024)   return b + ' B';
+    if (b < 2**20)  return (b/1024).toFixed(1) + ' KB';
+    if (b < 2**30)  return (b/2**20).toFixed(1) + ' MB';
+    return (b/2**30).toFixed(1) + ' GB';
+  }
+
+  function esc(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function escQ(s) { return String(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+
+  function loadingHtml(msg) {
+    return `<div class="empty-state"><div style="font-size:28px;animation:spin 1s linear infinite;">⟳</div><div class="empty-text">${msg}</div></div>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>`;
+  }
+  function emptyHtml(msg) {
+    return `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">${msg}</div></div>`;
+  }
+  function errorHtml(msg) {
+    return `<div class="empty-state"><div class="empty-icon">⚠</div><div class="empty-text" style="color:var(--red)">Erro ao carregar</div><div class="empty-sub">${esc(msg)}</div></div>`;
+  }
+</script>
+</body>
+</html>
